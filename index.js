@@ -43,6 +43,10 @@ let persons = [
     }
 ]
 
+app.get('/', (req, res) => {
+    res.status(200)
+  })
+
 app.get('/info', (req,res) => {
     let peopleCount = persons.length
     const currentData = new Date()
