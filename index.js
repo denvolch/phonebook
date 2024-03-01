@@ -1,6 +1,8 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+const Person = require('./models/Person')
 
 const app = express()
 app.use(express.json())
@@ -20,30 +22,6 @@ app.use(morgan((tok, req, res) => {
     ].join(' ')
 }))
 
-
-let persons = [
-    { 
-      "id": 1,
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": 2,
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": 3,
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": 4,
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-]
-
 app.get('/', (req, res) => {
     res.status(200)
   })
@@ -58,9 +36,9 @@ app.get('/info', (req,res) => {
     `)
 })
 
-
 app.get('/api/persons', (req, res) => {
-    res.json(persons)
+    Person.find({})
+        .then(persons => res.json(persons))
 })
 
 app.get('/api/persons/:id', (req, res) => {
@@ -90,31 +68,26 @@ app.post('/api/persons', (req, res) => {
             error: 'Field Name is empty'
         })
     }
-    if (persons.some(person => person.name === req.body.name)) {
-        res.statusMessage = 'Name is already existed'
-        return res.status(400).json({
-            error: 'Name is already existed'
+    // if (persons.some(person => person.name === req.body.name)) {
+    //     res.statusMessage = 'Name is already existed'
+    //     return res.status(400).json({
+    //         error: 'Name is already existed'
+    //     })
+    // }
+
+    const person = new Person({
+        name: req.body.name,
+        number: req.body.number,
+    })
+    person
+        .save()
+        .then(persons => {
+            console.log(JSON.stringify(person))
+            res.json(persons)
         })
-    }
-
-    let nextId
-    do {
-        nextId = Math.floor(Math.random() * (1000 - persons.length) + persons.length)
-    } while (persons.find(person => person.id === nextId))
-
-    const id = persons.length > 0
-        ? nextId
-        : 0
-
-    const newPerson = {
-        ...req.body,
-        id: id,
-    }
-    persons = persons.concat(newPerson)
-    res.json(newPerson).end()
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 
 app.listen(PORT, () => {
     console.log(`App listening on port ${PORT}`)
