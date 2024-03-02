@@ -79,27 +79,24 @@ app.post('/api/persons', (req, res, next) => {
     })
   }
 
-  Person.find({ name: req.body.name })
-  .then(result => {
-    if (result.length > 0) {
-      res.status(400).send({ error: 'Name is already existed' })
-
-    } else {
-      const person = new Person({
-        name: req.body.name,
-        number: req.body.number,
-      })
-
-      person
-        .save()
-        .then(persons => {
-            console.log(JSON.stringify(person))
-            res.json(persons)
-        })
-        .catch(err => next(err))
-    }
+  const person = new Person({
+    name: req.body.name,
+    number: req.body.number,
   })
-  .catch(err => next(err))
+
+  person
+    .save()
+    .then(persons => {
+        console.log(JSON.stringify(person))
+        res.json(persons)
+    })
+    .catch(err => next(err))
+})
+
+app.put('/api/persons/:id', (req, res, next) => {
+  Person.findByIdAndUpdate(req.params.id, req.body)
+    .then(updatedPerson => res.json(updatedPerson))
+    .catch(err => next(err))
 })
 
 const unknownEndpoint = (req, res) => {
