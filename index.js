@@ -22,6 +22,15 @@ app.use(morgan((tok, req, res) => {
     ].join(' ')
 }))
 
+const errorHandler = (err, req, res, next) => {
+    console.log(err.message)
+    if (err.name === 'CastError') {
+        return res.status(400).send({ error: 'malformatted id' })
+    }
+    next(err)
+}
+app.use(errorHandler)
+
 app.get('/', (req, res) => {
     res.status(200)
   })
@@ -86,6 +95,11 @@ app.post('/api/persons', (req, res) => {
             res.json(persons)
         })
 })
+
+const unknownEndpoint = (req, res) => {
+    res.status(400).send({ error: 'unknown endpoint' })
+}
+app.use(unknownEndpoint)
 
 const PORT = process.env.PORT
 
