@@ -23,46 +23,41 @@ app.use(morgan((tok, req, res) => {
   ].join(' ')
 }))
 
-const errorHandler = (err, req, res, next) => {
-  console.log(err.message)
-  if (err.name === 'CastError') {
-    return res.status(400).send({ error: 'malformatted id' })
-  }
-  next(err)
-}
-app.use(errorHandler)
-
 
 app.get('/', (req, res) => {
   res.status(200)
 })
 
 app.get('/info', (req, res) => {
-  Person.find({})
-  .then(persons => {
-    const currentData = new Date()
+  Person
+    .find({})
+    .then(persons => {
+      const currentData = new Date()
 
-    res.send(`
-      <p>Phonebook has info for ${persons.length} people.</P>
-      <br />
-      <p>${currentData}</p>
-    `)
-  })
+      res.send(`
+        <p>Phonebook has info for ${persons.length} people.</P>
+        <br />
+        <p>${currentData}</p>
+      `)
+    })
 })
 
 app.get('/api/persons', (req, res) => {
-  Person.find({})
+  Person
+    .find({})
     .then(persons => res.json(persons))
 })
 
 app.get('/api/persons/:id', (req, res, next) => {
-  Person.findById(req.params.id)
+  Person
+    .findById(req.params.id)
     .then(foundPerson => res.json(foundPerson))
     .catch(err => next(err))
 })
 
 app.delete('/api/persons/:id', (req, res, next) => {
-  Person.findByIdAndDelete(req.params.id)
+  Person
+    .findByIdAndDelete(req.params.id)
     .then(removedPerson => {
       res.json(removedPerson)
     })
@@ -85,17 +80,37 @@ app.post('/api/persons', (req, res, next) => {
   person
     .save()
     .then(persons => {
-        console.log(JSON.stringify(person))
+        // console.log(JSON.stringify(person))
         res.json(persons)
     })
     .catch(err => next(err))
 })
 
 app.put('/api/persons/:id', (req, res, next) => {
-  Person.findByIdAndUpdate(req.params.id, req.body)
+  Person
+    .findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+        context: 'query'
+      }
+    )
     .then(updatedPerson => res.json(updatedPerson))
     .catch(err => next(err))
 })
+
+const errorHandler = (err, req, res, next) => {
+  console.log('errorHandler catched: ', err.message)
+  if (err.name === 'CastError') {
+    return res.status(400).send({ error: 'malformatted id' })
+  } else if (err.name === 'ValidationError') {
+    return res.status(400).json({ error: err.message })
+  }
+  next(err)
+}
+app.use(errorHandler)
 
 const unknownEndpoint = (req, res) => {
   res.status(400).send({ error: 'unknown endpoint' })
