@@ -4,6 +4,7 @@ const morgan = require('morgan')
 const cors = require('cors')
 const Person = require('./models/Person')
 
+
 const app = express()
 app.use(express.json())
 app.use(cors())
@@ -31,18 +32,22 @@ const errorHandler = (err, req, res, next) => {
 }
 app.use(errorHandler)
 
+
 app.get('/', (req, res) => {
   res.status(200)
 })
 
-app.get('/info', (req,res) => {
-  let peopleCount = persons.length
-  const currentData = new Date()
-  res.send(`
-    <p>Phonebook has info for ${peopleCount} people.</P>
-    <br />
-    <p>${currentData}</p>
-  `)
+app.get('/info', (req, res) => {
+  Person.find({})
+  .then(persons => {
+    const currentData = new Date()
+
+    res.send(`
+      <p>Phonebook has info for ${persons.length} people.</P>
+      <br />
+      <p>${currentData}</p>
+    `)
+  })
 })
 
 app.get('/api/persons', (req, res) => {
@@ -50,25 +55,18 @@ app.get('/api/persons', (req, res) => {
     .then(persons => res.json(persons))
 })
 
-app.get('/api/persons/:id', (req, res) => {
-  const id = Number(req.params.id)
-  
-  const person = persons.find(person => person.id === id)
-
-  if (person) {
-    res.json(person)
-  } else {
-    res.status(404).end()
-  }
+app.get('/api/persons/:id', (req, res, next) => {
+  Person.findById(req.params.id)
+    .then(foundPerson => res.json(foundPerson))
+    .catch(err => next(err))
 })
 
 app.delete('/api/persons/:id', (req, res, next) => {
   Person.findByIdAndDelete(req.params.id)
     .then(removedPerson => {
-      console.log(removedPerson)
       res.json(removedPerson)
     })
-    .catch(err => next(error))
+    .catch(err => next(err))
 })
 
 app.post('/api/persons', (req, res, next) => {
@@ -103,6 +101,7 @@ const unknownEndpoint = (req, res) => {
   res.status(400).send({ error: 'unknown endpoint' })
 }
 app.use(unknownEndpoint)
+
 
 const PORT = process.env.PORT
 
