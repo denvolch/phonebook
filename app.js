@@ -14,7 +14,7 @@ mongoose.connect(config.MONGODB_URI)
   .then(() => logger.info('connected to MongoDB'))
   .catch(() => logger.error('error connecting to MongoDB'))
 
-morgan.token('body', (req) => Object.keys(req.body).length === 0
+morgan.token('body', (req) => !Object.keys(req.body).length === 0
   ? JSON.stringify(req.body)
   : null
 )
