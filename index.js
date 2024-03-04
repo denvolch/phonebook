@@ -10,7 +10,7 @@ app.use(express.json())
 app.use(cors())
 app.use(express.static('dist'))
 
-morgan.token('body', (req, res) => JSON.stringify(req.body))
+morgan.token('body', (req) => JSON.stringify(req.body))
 
 app.use(morgan((tok, req, res) => {
   return [
@@ -68,7 +68,7 @@ app.post('/api/persons', (req, res, next) => {
   if (!req.body.name) {
     res.statusMessage = 'Field Name is empty'
     return res.status(400).json({
-        error: 'Field Name is empty'
+      error: 'Field Name is empty'
     })
   }
 
@@ -80,8 +80,8 @@ app.post('/api/persons', (req, res, next) => {
   person
     .save()
     .then(persons => {
-        // console.log(JSON.stringify(person))
-        res.json(persons)
+      // console.log(JSON.stringify(person))
+      res.json(persons)
     })
     .catch(err => next(err))
 })
